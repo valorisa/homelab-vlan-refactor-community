@@ -1,0 +1,29 @@
+! Snippet de configuration : Agrégat LACP et Trunk sur Cisco Catalyst 2960X
+! Référence : homelab-vlan-refactor-community
+
+configure terminal
+
+! 1. Déclaration de la base VLAN
+vlan 10,20,30,50,100,200,999,1000
+exit
+
+! 2. Création de l'interface logique Port-Channel
+! Le 'native vlan 999' empêche le VLAN 1 non tagué de polluer le trunk
+interface port-channel 1
+ description UPLINK_VERS_FORTIGATE
+ switchport mode trunk
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,30,50,100,200,1000
+exit
+
+! 3. Assignation des ports physiques au LAG (LACP mode active)
+interface range gigabitEthernet 1/0/45-46
+ description LACP_MEMBER_VERS_FORTIGATE
+ switchport mode trunk
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,30,50,100,200,1000
+ channel-group 1 mode active
+exit
+
+! 4. Sauvegarde
+write memory
